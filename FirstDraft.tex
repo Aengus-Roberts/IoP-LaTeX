@@ -1,25 +1,258 @@
 \documentclass[10pt]{iopart}
 \include{setup}
 
-
 \begin{document}
-	\title[A lagrangian mechanics oriented approach to neural networks]{A lagrangian mechanics oriented approach to neural networks}
-	\author{A S Roberts}
-	\address{Department of Physics, University of Bath, Claverton Down, Bath BA2 7AY, United Kingdom}
-	
+\ioptwocol[{
+\title[A lagrangian mechanics oriented approach to neural networks]{A lagrangian mechanics oriented approach to neural networks}
+\author{A S Roberts}
+\address{Department of Physics, University of Bath, Claverton Down, Bath BA2 7AY, UK}
 \begin{abstract}
-I Shall fill this section in at some point.
+\lipsum[1]
 \end{abstract}
-\todo{Abstract}
-\maketitle
-\ioptwocol
+}]
+% Four main areas of focus:
+% 1. Neural Networks in Physics
+%		- Neural Networks 101 - DONE
+%		- Neural Networks in Physics
+%			- PNN
+%			- NN for Physics
+%		- Things we can work with
+%			- Loss Function
+%			- Model
+%			- Data
+% 2. Slimplectic Integrator
+% 		- Introduce Integrators
+%			- Specialise to Slimplectic
+%			- Explain Slimplectic
+%		- Talk about Optimisation	
+% 		- GPU applications	
+% 3. Loss Functions
+% 4. LMNN
 \section{Introduction}
+\subsection{Neural Networks in Physics}
+Machine learning has become the latest addition to the modern physicists toolkit with a broad range of applications from deep learning for imaging in medical physics \cite{MedPhysDL} to large scale data analysis in astrophysics \cite{astroML}. Machine learning and often neural networks are allowing physicists to tackle problems which were previously intractable due to the size and scale of the computational required. To understand how this tool can be used one must first understand how the tool works.
+
+Neural networks are the most common form of machine learning and work by finding a generalised non-linear function (the neural network) between the input and output spaces. The input space is the space of data in which patterns aim to be discovered. For medical imaging this might be pixel values for a certain size image or in astrophysics it may be a range of luminosity values attributed to certain wavelengths of light. The output space is similar, a space of possible outputs such as possible classifications of an astrophysical object with respective confidence levels.
+
+ One of the main draws of neural networks is the ability to apply the function to any object in the input space, even if previously unseen. The neural network can be seen as a connected graph where each node and connection has a weighting (weights and biases respectively). To obtain a function that can accurately predict an outcome for any element of the input space the neural network has to be trained. This training involves taking a known subset of the input and output spaces called the training data set along with a loss function $f_{\mathrm{loss}}$. The loss function compares the neural networks calculated outputs with the known (true) outputs in the training data. Starting with a randomly initialised neural network (randomised weights and biases) the following process can be repeated to slowly optimise the network:
+ 
+ \begin{enumerate}
+ 	\item Pass an element of the training data through the neural network
+ 	\item Calculate losses for the output
+ 	\item Take the gradient of the loss function with respect to the weights and biases in the neural network
+ 	\item Update the weights and biases according to $-\nabla f_{\mathrm{loss}}$ to minimise the loss of the function
+ \end{enumerate}
+ 
+By repeating this process local minima of the loss function can be found thereby optimising the neural network. 
+Ideally, a global minima would be found but this is not guaranteed by the method outlined above. Optimisation algorithms such as Adaptive Moment Estimation (ADAM) optimiser \cite{ADAM} can be implemented in order to increase these chances by varying the size of the updates made when taking the gradient of the loss function.
+
+With the ability to identify possibly unseen patterns in data, neural networks are an ideal tool for physicists. One area of neural network development related to this is that of physics informed neural networks (PINN's). These are neural networks that have been given a priori knowledge such as basic physical laws. This knowledge can be encoded into the model in a multitude of ways. Physics informed layers of the neural network are one such encoding such as layers that enforce conservation laws for fluid dynamics. Another encoding is via loss function formulation where the loss function incorporates terms derived from the governing physics equations. These terms will act to penalise the model for deviation from known physical laws. 
+
+\subsection{Lagrangian Mechanics}
+Here we provide a brief overview of Lagrangian Mechanics, a formalism of classical mechanics prioritising the energy of a system as its initial reference point. 
+
+Lagrange's formalism considers a set of generalised coordinates $\{q_1,q_2,\ldots,q_n,\dot{q}_1,\dot{q}_2,\ldots,\dot{q_n},t\}$(hereon denoted as the vectors $\bold{q}$ and $\bold{\dot{q}}$) which are used to express the kinetic, $T$, and potential, $V$, energies of the system. The Lagrangian 
+\begin{equation}
+	\mathcal{L}(\bold{q},\bold{\dot{q}},t) = T(\bold{q},\bold{\dot{q}},t) - V(\bold{q},\bold{\dot{q}},t)
+\end{equation}
+
+\noindent is defined as the difference between the two energies of the system. The Lagrangian provides the final object of interest the action, $S$, defined as
+
+\begin{equation}
+		S = \int_{t_1}^{t_2} \mathcal{L}(\mathbf{q},\mathbf{\dot{q}},t) dt
+\end{equation}
+
+\noindent a functional of which stationary points are of interest. Hamilton's principle \cite{Goldstein} that these stationary points are where the Lagrangian models physical reality i.e. $\delta S = 0$. 
+
+From here the equations of motions (EoMs) can be obtained by applying the Euler-Lagrange equation which is equivalent to minimising the action (and thus finding its stationary points)
+
+\begin{equation}
+\label{Eul-Lag}
+	\frac{\partial\mathcal{L}}{\partial q_i} - \frac{d}{dt}\left(\frac{\partial \mathcal{L}}{\partial \dot{q_i}}\right) = 0
+\end{equation}
+
+\noindent where we obtain $n$ differential equations for the $n$ generalised coordinates. Equation \ref{Eul-Lag} then provides a generalised form for the EoMs of a conservative system. 
+
+\subsubsection{Example: Simple Harmonic Oscillator \\}
+
+A motivating example may be that of the 1-dimensional simple harmonic oscillator given by the differential equation
+
+\begin{equation}
+	\ddot x = x
+\end{equation}
+with position $x$, mass $m$ and spring constant $k$. The kinetic energy of this system is then given by
+\begin{equation}
+	T = \frac{1}{2}m\dot x^2
+\end{equation}
+and the potential energy by 
+\begin{equation}
+	V = \frac{1}{2}kx^2
+\end{equation}
+
+\noindent This gives the lagrangian
+\begin{equation}
+	\mathcal{L} = \frac{1}{2}m\ddot x^2 - \frac{1}{2}kx^2
+\end{equation}
+
+\noindent which when inputted into equation \ref{Eul-Lag} once again provides our known equation of motion
+\begin{equation}
+	\ddot x = \frac{k}{m}x
+\end{equation}\
+
+Conservation laws can also be identified through the use of lagrangian mechanics via Noether's Theorem \cite{Goldstein}. It states that every differentiable symmetry of the action for a conservative system has a corresponding conservation law. The conserved values are often known as Noether currents when considered as functions of time. 
+
+\subsubsection{Nonconservative Lagrangians \\}
+Galley, Tsang and Stein \cite{GalleyEtAl} propose a generalisation of Noether's Theorem to allow for non-conservative systems. This works by generalising to the nonconservative lagrangian, $\Lambda$, of the form 
+
+\begin{equation}
+\label{non-con-lagran}
+	\Lambda = \mathcal{L}(\bold{q_1,\dot q_1},t) - \mathcal{L}(\bold{q_2,\dot q_2},t) + K(\bold{q_1,\dot q_1,q_2,\dot q_2},t)
+\end{equation}
+
+where $\mathcal{L}$ is the lagrangian as defined previously and $K$ is an additional coupling term physically similar to a non-conservative potential. The generalised coordinates are doubled, as explained by Galley \cite{Galley}, from $\bold{q,\dot q}$ to $\bold{q_1,\dot q_1, q_2, \dot q_2}$. This allows for the conversion of Hamiltons principle from a boundary value problem (i.e. ``minimise the action passing through given initial and final values") to an initial value problem involving twice the degrees of freedom. These new generalised coordinates must satisfy $q_1(t) = q_2(t)$ and $\dot q_1(t) = \dot q_2(t)$ for $t \in \{t_i, t_f\}$.
+
+Galley \cite{Galley} also shows that $K$ must be antisymmetric in swapping the indices and therefore must also vanish for $\bold q_1 =\bold q_2,\bold{\dot q_1} =\bold{\dot q_2}$.
+
+\todo{galley figure}
+
+For convenience a change of coordinates is often performed due to physical motivation. These are $q_- = (q_1 - q_2)/2$ and $q_+ = (q_1 + q_2)/2$  where the former can be considered a hypothetical displacement that vanishes in the physical limit $q_- \to 0$ and the latter the physically relevant component of the coordinates.
+Note here that equation \ref{non-con-lagran} continues to satisfy the Euler Lagrange equation (equation \ref{Eul-Lag}) when evaluated in the physical limit (PL). This is formulated as
+
+\begin{equation}
+\label{NonConEulerLagrange}
+	\frac{d}{dt} \left[\frac{\partial \Lambda}{\partial \dot{q_-}}\right]_{PL} - \left[\frac{\partial\Lambda}{\partial q_-}\right]_{PL} = 0
+\end{equation}
+
+\subsubsection{Hamiltonian Mechanics \\}
+Another formulation of classical mechanics similar to lagrangian mechanics is that of Hamiltonian mechanics. As the name suggests the object of interest here is the classical Hamiltonian $H$ defined as 
+\begin{equation}
+\label{Hamiltonian}
+	H = T + V
+\end{equation}
+
+Hamiltonian mechanics exchanges the use of generalised velocities $(\dot q)$ in favour of generalised momenta $p$. This is sometimes, but not always, equivalent to momenta in classical mechanics in the same way that $\dot\theta$ could be considered a velocity (time derivative of a coordinate $\theta$) but would not likely be ones initial idea for a velocity. This exchange does not affect the class of physical phenomena that can be described by Hamiltonian mechanics compared to Lagrangian mechanics; that is to say that these classes of phenomena are equivalent.
+
+The Hamiltonian (equation \ref{Hamiltonian}) produces first order ordinary differential equations (ODEs) as the equations of motion
+
+\begin{equation}
+	\frac{dq_i}{dt} = \frac{\partial H}{\partial p_i}, \frac{dp_i}{dt} = -\frac{\partial H}{\partial q_i}
+\end{equation}
+
+This formulation is often useful for symplectic integrators \cite{SanzSerna} as discussed in section \ref{Symplectic}.
+
+\subsection{Slimplectic Integrator}
+\label{Symplectic}
+Integrators are another tool within the modern physicists toolbox. Many physics problems have non-analytic solutions and this is where integrators make their appearance. Many integrators exist and are specialised for different applications. The Runge-Kutta method \cite{RungeKutta} is a well known and widely applied group of methods used for a balanced trade off between accuracy and efficiency. RK45 is perhaps paramount of these with an efficient method of finding solutions to problems with stronger than 4th order accuracy. One issue that Runge-Kutta faces however is that of compounding error. Whilst any one term has bounded error when using Runge-Kutta for integration, the total accumulation of error is not bounded causing issues for systems evolved over longer time periods. 
+
+A remedy to this is another class of integrators called Symplectic integrators. These preserve (up to computational rounding) the differential 2-form called the symplectic form. Preservation of the symplectic form is analogous to preservation of certain physical constants. Due to this preservation the symplectic integrator is often used in integration of systems over long time scales. This is particularly common in orbital mechanics \cite{WISDOM, ReinTamayo} but also finds uses in statistical algorithms \cite{Neal_MCMC}.
+
+One construction of symplectic integrators is via the means of variational integrators which are determined by the variation of a discretised action. This differs from traditional numerical integrators, such as Runge-Kutta, which discretises the equations of motion themselves. 
+
+\todo{wobbly tsang figure} 
+
+Symplectic integrators are often used to solve Hamiltonian systems numerically. One common approach used for symplectic integrators is splitting methods such as the leapfrog and Verlet \cite{Verlet} methods. These work by splitting the Hamiltonian into smaller, more manageable parts and iteratively solving the system. By splitting the Hamiltonian like this the integrator can approximate solutions whilst preserving important geometric properties (such as the symplectic form, volume or energy) at a global level.
+
+\subsubsection{The "Slimplectic" Integrator \\}
+Tsang et al. \cite{Tsang_Slimplectic} have developed a variational integrator, the "Slimplectic" integrator, from the nonconservative action principle \cite{GalleyEtAl}. Starting with equation \ref{NonConEulerLagrange} the action integral $S = \int_{t_i}^{t_f}\Lambda(q_{\pm},\dot{q_{\pm}},t)dt$ is discretised using Galerkin-Gauss-Lobatto (GGL) quadrature \cite{GGL} as shown in figure \ref{GGLDiscretisation}. The GGL quadrature is chosen as it is an even order method and therefore symmetric under time reversal ($t\to-t$). The interval $t\in [t_n, t_{n+1}]$ has $r+2$ quadrature points given by
+
+\begin{equation}
+\label{timeDiscretisation}
+	t_n^{(i)} \equiv t_n + (1+x_i)\frac{\Delta t}{2}
+\end{equation}
+
+where $\Delta t = (t_{n+1}-t_n)/2$, $x_0 \equiv -1, x_{r+1} \equiv 1$ and $x_i$ is the $i$th root of $dP_{r+1}/dx$, the derivative of the $(r+1)$th Legendre polynomial $P_{r+1}(x)$. 
+
+\todo{Replace Image}
+\begin{figure}
+	\centering
+	\label{GGLDiscretisation}
+	\includegraphics[width = 0.9\columnwidth]{Pingu.jpg}
+	\caption{The discretisation of time used within the GGL method. This is used to approximate the action to N timesteps between $t_i$ and $t_f$. Between $t_n$ and $t_{n+1}$ the quadrature discretises $r$ times as according to equation \ref{timeDiscretisation}.}
+\end{figure}
+
+To obtain approximations of values for $\dot{q}_{n,\pm}^{(i)}(t)$ at the quadrature points the derivative matrix \cite{Boyd}
+
+\begin{equation}
+	D_{ij} = 
+	\begin{cases}
+		-(r+1)(r+2)/(2\Delta t) &i=j=0 \\
+		(r+1)(r+2)/(2\Delta t) &i=j=r+1 \\
+		0 &i=j\notin\{0,r+1\} \\
+		\frac{2P_{r+1}(x_i)}{P_{r+1}(x_j)(x_i-x_j)\Delta t} &i\neq j
+	\end{cases}
+\end{equation}
+	
+is used to give
+
+\begin{equation}
+	\dot{q}_{n,\pm}(t_n^{(i)}) \simeq \sum_{j=0}^{r+1} D_{ij}q_{n,\pm}^{(j)}
+\end{equation}
+
+where Tsang et al. \cite{Tsang_Slimplectic} provides more explanation as to the reasoning for this approximation.
+
+ GGL quadrature allows any functional $\int F dt$ to be approximated over an interval of time by a discrete functional $F_d$ given by
+ 
+\begin{equation}
+\label{discretisedFunctional}
+\begin{aligned}
+F_d^n &\equiv F_d\left(q_{n, \pm},\left\{q_{n, \pm}^{(i)}\right\}_{i=1}^r, q_{n+1, \pm}, t_n\right) \\  &\equiv \sum_{i=0}^{r+1} w_i F\left(q_{n, \pm}^{(i)}, \dot{\phi}_{n, \pm}^{(i)}, t_n^{(i)}\right),
+\end{aligned}
+\end{equation}
+
+where $w_i$ is a weighting given by 
+
+\begin{equation}
+	w_i \equiv \frac{\Delta t}{(r+1)(r+2)[P_{r+1}(x_i)]^2}.
+\end{equation}
+
+With a discretisation of $\dot{q}_{\pm}$ the action can be discretised by applying the methodology of equation \ref{discretisedFunctional} to equation \ref{non-con-lagran} defined as 
+
+
+\begin{equation}
+\mathcal{S}_d\left[t_0, t_{N+1}\right] \equiv \sum_{n=0}^N \Lambda_d\left(q_{n, \pm},\left\{q_{n, \pm}^{(i)}\right\}_{i=1}^r, q_{n+1, \pm}, t_n\right).
+\end{equation}
+
+This can then be applied to the the Euler Lagrange equation to obtain discretised equations of motion
+
+
+\begin{subequations}
+\begin{align}
+		\left[\frac{\partial \Lambda_d^{n-1}}{\partial q_{n,-}} + \frac{\partial\Lambda_d^n}{\partial q_{n,-}}\right]_{PL} &= 0 \\
+	\left[\frac{\partial\Lambda_d^n}{\partial q_{n,-}^{(i)}}\right]_{PL} &= 0.
+\end{align}
+\end{subequations}
+
+\todo{HERE TO NEXT EQUATION}
+\lipsum[1]
+
+\begin{subequations}
+\begin{align}
+\pi_n &\equiv -\left[\frac{\partial\Lambda_d^n}{\partial q_{n,-}}\right]_{PL} \\
+\pi_{n+1} &\equiv \left[\frac{\partial\Lambda_d^n}{\partial q_{n+1,-}}\right]_{PL} \\ 
+0 &\equiv \left[\frac{\partial\Lambda_d^n}{\partial q_{n,-}^{(i)}}\right]_{PL}
+\end{align}
+\end{subequations}
+
+which finally produces a set of discretised equations that can be computationally solved for.
+
+
+
+
+
+
+\subsection{Loss Functions}
+
+\subsection{Google Jax}
+
 \section{Method}
 \section{Results}
+\lipsum
 \section{Discussion}
-\cite{Nobody06}
+\lipsum
+\section{Conclusion}
 \ack
 \section*{References}
 \bibliographystyle{iopart-num}
 \bibliography{references}
+
 \end{document}

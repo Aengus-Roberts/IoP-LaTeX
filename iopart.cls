@@ -460,11 +460,15 @@
                {\endlist}
 \newcommand\descriptionlabel[1]{\hspace\labelsep
                                 \normalfont\bfseries #1}
-\newenvironment{abstract}{%
-      \vspace{16pt plus3pt minus3pt}
-      \begin{indented}
-      \item[]{\bfseries \abstractname.}\quad\rm\ignorespaces} 
-      {\end{indented}\if@titlepage\newpage\else\vspace{18\p@ plus18\p@}\fi}
+
+\usepackage{hanging}
+\usepackage{changepage}
+% TOOD: Fixe the spacing both vertically and horizontally here
+\newenvironment{abstract}
+{%
+      \vspace{16pt plus3pt minus3pt}\hangpara{4cm}{0}{\bfseries \abstractname.}\quad\rm\ignorespaces%
+}{}
+
 \newenvironment{verse}
                {\let\\=\@centercr
                 \list{}{\itemsep      \z@
